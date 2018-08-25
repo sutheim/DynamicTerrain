@@ -79,7 +79,7 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 	UE_LOG(LogTemp, Log, TEXT("Index of hit: %d. Based on xIndex: %d, and yIndex %d"), locationIndex ,xIndex,yIndex);
 
 	//This bits fucked
-	/*
+	
 	TArray<int32> affectedIndices = GetIndicesInRadius(xIndex, yIndex, radius);
 
 	for (int i = 0; i < affectedIndices.Num(); i = i + 1)
@@ -91,7 +91,7 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 		
 		terrainVertices[affectedIndex] = newVector;
 	}
-	*/
+	
 
 	//This works still
 	FVector newVector = FVector(terrainVertices[locationIndex].X, terrainVertices[locationIndex].Y, terrainVertices[locationIndex].Z - intensity);
@@ -113,14 +113,16 @@ TArray<int32> UDynamicTerrainComponent::GetIndicesInRadius(int32 xIndex,int32 yI
 	int32 outX;
 	int32 outY;
 
-	for (int i = 0; i <= radius; i = i + 1)
+	for (int i = 0; i <= radius*2; i = i + 1)
 	{
-		for (int j = 0; j <= radius; j = j + 1)
+		for (int j = 0; j <= radius*2; j = j + 1)
 		{
 			outX = xIndexAdjusted + i;
 			outY = yIndexAdjusted + j;
 
 			indicesInRadius.Add(GetIndexFromXY(FVector2D(outX, outY)));
+
+
 		}
 	}
 
