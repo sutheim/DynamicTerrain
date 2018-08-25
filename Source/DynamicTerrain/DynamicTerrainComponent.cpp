@@ -11,10 +11,11 @@ UDynamicTerrainComponent::UDynamicTerrainComponent()
 
 void UDynamicTerrainComponent::initializeTerrainArray()
 {
-	//Initialize vertices
+	//Initialize landscape mesh with some noise
 
 	UE_LOG(LogTemp, Log, TEXT("Initializing mesh with resolution: %d"), terrainResolution);
 
+	//loop through the rows and collumns according to the resolution ( will always be square )
 	for (int yIndex = 0; yIndex < terrainResolution; yIndex = yIndex + 1) {
 		for (int xIndex = 0; xIndex < terrainResolution; xIndex = xIndex + 1) {
 
@@ -25,12 +26,14 @@ void UDynamicTerrainComponent::initializeTerrainArray()
 			float xCoord = xIndex * distanceBetweenPoints;
 			float yCoord = yIndex * distanceBetweenPoints;
 
-
+			//Add the vertices with some simple noise added to the height
 			terrainVertices.Add(FVector(xCoord, yCoord, SimplexNoise::sNoise(xCoord * terrainNoiseScale, yCoord * terrainNoiseScale) * terrainHeight));
 
+			//Add UVs that will align with the size of the terrain (should possibly add a switch for constant size tiling uvs?)
 			terrainUV0.Add(FVector2D(xIndex / float(terrainResolution), yIndex / float(terrainResolution)));
 
-			if (xIndex != terrainResolution-1)
+			//Detect whether we are on an edge that does not connect to anything on its right
+			if (xIndex != terrainResolution-1 && yIndex != terrainResolution-1)
 			{
 				int32 point1 = index;
 				int32 point2 = point1 + 1;
