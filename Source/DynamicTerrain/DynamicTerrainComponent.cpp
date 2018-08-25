@@ -91,12 +91,6 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 		
 		terrainVertices[affectedIndex] = newVector;
 	}
-	
-
-	//This works still
-	FVector newVector = FVector(terrainVertices[locationIndex].X, terrainVertices[locationIndex].Y, terrainVertices[locationIndex].Z - intensity);
-
-	terrainVertices[locationIndex] = newVector;
 
 
 	Super::CreateMeshSection(0, terrainVertices, terrainTriangles, terrainNormals, terrainUV0, terrainVertexColors, terrainTangents, true);
