@@ -19,8 +19,10 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 	check(terrainVerticesPtr);
 
 	//loop through the rows and collumns according to the resolution ( will always be square )
-	for (int yIndex = 0; yIndex < terrainResolution; yIndex = yIndex + 1) {
-		for (int xIndex = 0; xIndex < terrainResolution; xIndex = xIndex + 1) {
+	for (int yIndex = 0; yIndex < terrainResolution; yIndex = yIndex + 1)
+	{
+		for (int xIndex = 0; xIndex < terrainResolution; xIndex = xIndex + 1)
+		{
 
 			int index = terrainResolution * yIndex + xIndex;
 
@@ -65,51 +67,77 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 
 }
 
+
+
 void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, float intensity)
 {
 	int32 xIndex = FMath::RoundHalfFromZero((location[0] / terrainWidth) * terrainResolution);
 	int32 yIndex = FMath::RoundHalfFromZero((location[1] / terrainWidth) * terrainResolution);
 
-	int32 index = terrainResolution * yIndex + xIndex;
+	int32 locationIndex = GetIndexFromXY(FVector2D(xIndex, yIndex));
 	
-	UE_LOG(LogTemp, Log, TEXT("Index of hit: %d. Based on xIndex: %d, and yIndex %d"), index,xIndex,yIndex);
+	UE_LOG(LogTemp, Log, TEXT("Index of hit: %d. Based on xIndex: %d, and yIndex %d"), locationIndex ,xIndex,yIndex);
 
-	UE_LOG(LogTemp, Log, TEXT("terrainVertices array length is: %d, with a memory location of: %d"), terrainVertices.Num(), &terrainVertices);
+	//This bits fucked
+	/*
+	TArray<int32> affectedIndices = GetIndicesInRadius(xIndex, yIndex, radius);
 
-	FVector newVector = FVector(terrainVertices[index].X, terrainVertices[index].Y, terrainVertices[index].Z - 25.0f);
+	for (int i = 0; i < affectedIndices.Num(); i = i + 1)
+	{
+		int32 affectedIndex = affectedIndices[i];
+		float falloff = (GetDistanceToIndex(locationIndex, affectedIndex) * -1 + radius) / radius;
 
-	terrainVertices[index] = newVector;
+		FVector newVector = FVector(terrainVertices[affectedIndex].X, terrainVertices[affectedIndex].Y, terrainVertices[affectedIndex].Z - intensity * falloff);
+		
+		terrainVertices[affectedIndex] = newVector;
+	}
+	*/
+
+	//This works still
+	FVector newVector = FVector(terrainVertices[locationIndex].X, terrainVertices[locationIndex].Y, terrainVertices[locationIndex].Z - intensity);
+
+	terrainVertices[locationIndex] = newVector;
+
 
 	Super::CreateMeshSection(0, terrainVertices, terrainTriangles, terrainNormals, terrainUV0, terrainVertexColors, terrainTangents, true);
 }
 
+
+// Gets a square of points around the hit location based on the radius. These will be the only points we modify
 TArray<int32> UDynamicTerrainComponent::GetIndicesInRadius(int32 xIndex,int32 yIndex, int32 radius)
 {
 	TArray<int32> indicesInRadius;
 	int32 xIndexAdjusted = FMath::Clamp(xIndex - radius, 0, terrainResolution);
 	int32 yIndexAdjusted = FMath::Clamp(yIndex - radius, 0, terrainResolution);
 
+	int32 outX;
+	int32 outY;
 
-	for (int i = 0; i <= radius; i = i + 1) {
-		for (int j = 0; j <= radius; j = j + 1) {
-		
+	for (int i = 0; i <= radius; i = i + 1)
+	{
+		for (int j = 0; j <= radius; j = j + 1)
+		{
+			outX = xIndexAdjusted + i;
+			outY = yIndexAdjusted + j;
+
+			indicesInRadius.Add(GetIndexFromXY(FVector2D(outX, outY)));
 		}
 	}
 
 	return indicesInRadius;
 }
 
-int32 UDynamicTerrainComponent::GetDistanceToIndex(int32 center, int32 index, int32 radius)
+float UDynamicTerrainComponent::GetDistanceToIndex(int32 center, int32 index)
 {
-	return 0;
+	return FVector2D::Distance(GetXYfromIndex(center), GetXYfromIndex(index));
 }
 
 FVector2D UDynamicTerrainComponent::GetXYfromIndex(int32 index)
 {
-	return FVector2D();
+	return FVector2D(FMath::Fmod(index,terrainResolution), int32(index / terrainResolution ));
 }
 
 int32 UDynamicTerrainComponent::GetIndexFromXY(FVector2D xyIndex)
 {
-	return int32();
+	return terrainResolution * xyIndex.Y + xyIndex.X;
 }

@@ -48,7 +48,7 @@ private:
 
 	TArray<int32> GetIndicesInRadius(int32 xIndex, int32 yIndex, int32 radius);
 
-	int32 GetDistanceToIndex(int32 center, int32 index, int32 radius);
+	float GetDistanceToIndex(int32 center, int32 index);
 
 	FVector2D GetXYfromIndex(int32 index);
 
