@@ -29,7 +29,7 @@ public:
 		float terrainHeight = 64;
 
 	UPROPERTY(EditAnywhere)
-		int terrainResolution = 128;
+		int32 terrainResolution = 128;
 
 	UPROPERTY(EditAnywhere)
 		float terrainWidth = 4096;
@@ -45,4 +45,12 @@ private:
 	TArray<FVector2D> terrainUV0;
 	TArray<FColor> terrainVertexColors;
 	TArray<FProcMeshTangent> terrainTangents;
+
+	TArray<int32> GetIndicesInRadius(int32 xIndex, int32 yIndex, int32 radius);
+
+	int32 GetDistanceToIndex(int32 center, int32 index, int32 radius);
+
+	FVector2D GetXYfromIndex(int32 index);
+
+	int32 GetIndexFromXY(FVector2D xyIndex);
 };

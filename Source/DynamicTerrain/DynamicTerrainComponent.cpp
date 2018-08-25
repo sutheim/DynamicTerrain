@@ -67,8 +67,8 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 
 void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, float intensity)
 {
-	int xIndex = FMath::RoundHalfFromZero((location[0] / terrainWidth) * terrainResolution);
-	int yIndex = FMath::RoundHalfFromZero((location[1] / terrainWidth) * terrainResolution);
+	int32 xIndex = FMath::RoundHalfFromZero((location[0] / terrainWidth) * terrainResolution);
+	int32 yIndex = FMath::RoundHalfFromZero((location[1] / terrainWidth) * terrainResolution);
 
 	int32 index = terrainResolution * yIndex + xIndex;
 	
@@ -81,4 +81,35 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 	terrainVertices[index] = newVector;
 
 	Super::CreateMeshSection(0, terrainVertices, terrainTriangles, terrainNormals, terrainUV0, terrainVertexColors, terrainTangents, true);
+}
+
+TArray<int32> UDynamicTerrainComponent::GetIndicesInRadius(int32 xIndex,int32 yIndex, int32 radius)
+{
+	TArray<int32> indicesInRadius;
+	int32 xIndexAdjusted = FMath::Clamp(xIndex - radius, 0, terrainResolution);
+	int32 yIndexAdjusted = FMath::Clamp(yIndex - radius, 0, terrainResolution);
+
+
+	for (int i = 0; i <= radius; i = i + 1) {
+		for (int j = 0; j <= radius; j = j + 1) {
+		
+		}
+	}
+
+	return indicesInRadius;
+}
+
+int32 UDynamicTerrainComponent::GetDistanceToIndex(int32 center, int32 index, int32 radius)
+{
+	return 0;
+}
+
+FVector2D UDynamicTerrainComponent::GetXYfromIndex(int32 index)
+{
+	return FVector2D();
+}
+
+int32 UDynamicTerrainComponent::GetIndexFromXY(FVector2D xyIndex)
+{
+	return int32();
 }
