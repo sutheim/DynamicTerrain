@@ -85,9 +85,9 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 	for (int i = 0; i < affectedIndices.Num(); i = i + 1)
 	{
 		int32 affectedIndex = affectedIndices[i];
-		float falloff = (GetDistanceToIndex(locationIndex, affectedIndex) * -1 + radius) / radius;
+		float falloff = FMath::Clamp((GetDistanceToIndex(locationIndex, affectedIndex) * -1 + radius) / radius, 0.0f, 1.0f);
 
-		FVector newVector = FVector(terrainVertices[affectedIndex].X, terrainVertices[affectedIndex].Y, terrainVertices[affectedIndex].Z - intensity * falloff);
+		FVector newVector = FVector(terrainVertices[affectedIndex].X, terrainVertices[affectedIndex].Y, terrainVertices[affectedIndex].Z - intensity * FMath::Pow(falloff,0.75f));
 		
 		terrainVertices[affectedIndex] = newVector;
 	}
