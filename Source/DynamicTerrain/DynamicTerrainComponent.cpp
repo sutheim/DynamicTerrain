@@ -5,8 +5,7 @@
 
 UDynamicTerrainComponent::UDynamicTerrainComponent()
 {
-
-
+	//construction being done in BP for now
 }
 
 void UDynamicTerrainComponent::initializeTerrainArray()
@@ -32,7 +31,7 @@ void UDynamicTerrainComponent::initializeTerrainArray()
 			//Add UVs that will align with the size of the terrain (should possibly add a switch for constant size tiling uvs?)
 			terrainUV0.Add(FVector2D(xIndex / float(terrainResolution), yIndex / float(terrainResolution)));
 
-			//Detect whether we are on an edge that does not connect to anything on its right
+			//Detect whether we are on an edge that does not connect to anything
 			if (xIndex != terrainResolution-1 && yIndex != terrainResolution-1)
 			{
 				int32 point1 = index;
@@ -56,7 +55,7 @@ void UDynamicTerrainComponent::initializeTerrainArray()
 
 
 	Super::CreateMeshSection(0,terrainVertices,terrainTriangles,terrainNormals,terrainUV0,terrainVertexColors,terrainTangents,true);
-
+	UE_LOG(LogTemp, Log, TEXT("terrainVertices array length is: %d after creation"), terrainVertices.Num());
 }
 
 void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, float intensity)

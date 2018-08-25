@@ -20,6 +20,7 @@ public:
 	UDynamicTerrainComponent();
 
 	
+
 private:
 	
 	TArray<FVector> terrainVertices;
