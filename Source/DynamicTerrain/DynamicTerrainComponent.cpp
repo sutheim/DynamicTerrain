@@ -5,23 +5,27 @@
 
 UDynamicTerrainComponent::UDynamicTerrainComponent()
 {
-	//InitializeTerrainArray();
+
+	bUseAsyncCooking = true;
+	terrainVertices.Reserve(terrainResolution*terrainResolution);
+	terrainUV0.Reserve(terrainResolution*terrainResolution);
+	terrainNormals.Reserve(terrainResolution*terrainResolution);
 }
 
 void UDynamicTerrainComponent::InitializeTerrainArray()
 {
 	//Initialize landscape mesh with some noise
 
-	UE_LOG(LogTemp, Log, TEXT("Initializing mesh with resolution: %d, terrainVertices stored at: %d"), terrainResolution, terrainVerticesPtr);
+	UE_LOG(LogTemp, Log, TEXT("Initializing mesh with resolution: %d"), terrainResolution);
 
 
 	//check this badboi
 	check(terrainVerticesPtr);
 
 	//loop through the rows and collumns according to the resolution ( will always be square )
-	for (int yIndex = 0; yIndex < terrainResolution; yIndex = yIndex + 1)
+	for (int yIndex = 0; yIndex < terrainResolution; yIndex++)
 	{
-		for (int xIndex = 0; xIndex < terrainResolution; xIndex = xIndex + 1)
+		for (int xIndex = 0; xIndex < terrainResolution; xIndex++)
 		{
 
 			int index = terrainResolution * yIndex + xIndex;
@@ -61,9 +65,8 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 		}
 	}
 
-
 	Super::CreateMeshSection(0,terrainVertices,terrainTriangles,terrainNormals,terrainUV0,terrainVertexColors,terrainTangents,true);
-	UE_LOG(LogTemp, Log, TEXT("terrainVertices array length is: %d after creation, with a memory location of: %d"), terrainVertices.Num(), &terrainVertices);
+	UE_LOG(LogTemp, Log, TEXT("terrainVertices array length is: %d after creation"), terrainVertices.Num());
 
 }
 
@@ -82,12 +85,12 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 	
 	TArray<int32> affectedIndices = GetIndicesInRadius(xIndex, yIndex, radius);
 
-	for (int i = 0; i < affectedIndices.Num(); i = i + 1)
+	for (int i = 0; i < affectedIndices.Num(); i++)
 	{
 		int32 affectedIndex = affectedIndices[i];
 		float falloff = FMath::Clamp((GetDistanceToIndex(locationIndex, affectedIndex) * -1 + radius) / radius, 0.0f, 1.0f);
 
-		FVector newVector = FVector(terrainVertices[affectedIndex].X, terrainVertices[affectedIndex].Y, terrainVertices[affectedIndex].Z - intensity * FMath::Pow(falloff,0.75f));
+		FVector newVector = FVector(terrainVertices[affectedIndex].X, terrainVertices[affectedIndex].Y, terrainVertices[affectedIndex].Z - intensity * FMath::Pow(FMath::SmoothStep(0,1,falloff),0.9));
 		
 		terrainVertices[affectedIndex] = newVector;
 	}
@@ -107,9 +110,9 @@ TArray<int32> UDynamicTerrainComponent::GetIndicesInRadius(int32 xIndex,int32 yI
 	int32 outX;
 	int32 outY;
 
-	for (int i = 0; i <= radius*2; i = i + 1)
+	for (int i = 0; i <= radius*2; i++)
 	{
-		for (int j = 0; j <= radius*2; j = j + 1)
+		for (int j = 0; j <= radius*2; j++)
 		{
 			outX = xIndexAdjusted + i;
 			outY = yIndexAdjusted + j;
