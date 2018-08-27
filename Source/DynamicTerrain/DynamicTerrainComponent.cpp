@@ -9,6 +9,7 @@ UDynamicTerrainComponent::UDynamicTerrainComponent()
 	terrainVertices.Reserve(terrainResolution*terrainResolution);
 	terrainUV0.Reserve(terrainResolution*terrainResolution);
 	terrainNormals.Reserve(terrainResolution*terrainResolution);
+	terrainVertexColors.Reserve(terrainResolution*terrainResolution);
 }
 
 //Initializes array with vertices, triangles, UVs, normals and some noise in the heightmap
@@ -17,10 +18,6 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 	//Initialize landscape mesh with some noise
 
 	UE_LOG(LogTemp, Log, TEXT("Initializing mesh with resolution: %d"), terrainResolution);
-
-
-	//check this badboi
-	check(terrainVerticesPtr);
 
 	//loop through the rows and collumns according to the resolution ( will always be square )
 	for (int yIndex = 0; yIndex < terrainResolution; yIndex++)
@@ -59,6 +56,8 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 		}
 	}
 
+	terrainVertexColors.Init(FColor(0, 0, 0, 0), terrainResolution*terrainResolution);
+
 	Super::CreateMeshSection(0,terrainVertices,terrainTriangles,terrainNormals,terrainUV0,terrainVertexColors,terrainTangents,true);
 	UE_LOG(LogTemp, Log, TEXT("terrainVertices array length is: %d after creation"), terrainVertices.Num());
 
@@ -96,7 +95,9 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 		float falloff = FMath::Clamp((GetDistanceToIndex(locationIndex, affectedIndex) * -1 + radius) / radius, 0.0f, 1.0f);
 
 		FVector newVector = FVector(terrainVertices[affectedIndex].X, terrainVertices[affectedIndex].Y, terrainVertices[affectedIndex].Z - intensity * FMath::Pow(FMath::SmoothStep(0,1,falloff),0.9));
+		FColor newVC = FColor(FMath::Clamp(terrainVertexColors[affectedIndex].R + int32(falloff*255),0,255), 0, 0, 0);
 		
+		terrainVertexColors[affectedIndex] = newVC;
 		terrainVertices[affectedIndex] = newVector;
 	}
 
@@ -184,7 +185,6 @@ FVector UDynamicTerrainComponent::GetNormalFromIndex(int32 index)
 	}
 	
 	return normal;
-	//return FVector(0,0,1);
 }
 
 //Different helper functions for navigating terrain arrays

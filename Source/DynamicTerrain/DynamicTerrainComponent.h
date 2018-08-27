@@ -42,7 +42,6 @@ public:
 
 private:
 	TArray<FVector> terrainVertices;
-	TArray<FVector>* terrainVerticesPtr = &terrainVertices;
 	TArray<int32> terrainTriangles;
 	TArray<FVector> terrainNormals;
 	TArray<FVector2D> terrainUV0;
