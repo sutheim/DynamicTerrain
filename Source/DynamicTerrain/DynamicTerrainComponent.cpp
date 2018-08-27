@@ -5,13 +5,13 @@
 
 UDynamicTerrainComponent::UDynamicTerrainComponent()
 {
-
 	bUseAsyncCooking = true;
 	terrainVertices.Reserve(terrainResolution*terrainResolution);
 	terrainUV0.Reserve(terrainResolution*terrainResolution);
 	terrainNormals.Reserve(terrainResolution*terrainResolution);
 }
 
+//Initializes array with vertices, triangles, UVs, normals and some noise in the heightmap
 void UDynamicTerrainComponent::InitializeTerrainArray()
 {
 	//Initialize landscape mesh with some noise
@@ -27,15 +27,12 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 	{
 		for (int xIndex = 0; xIndex < terrainResolution; xIndex++)
 		{
-
 			int index = terrainResolution * yIndex + xIndex;
 
 			float distanceBetweenPoints = terrainWidth / terrainResolution;
 
 			float xCoord = xIndex * distanceBetweenPoints;
 			float yCoord = yIndex * distanceBetweenPoints;
-
-
 
 			//Add the vertices with some simple noise added to the height
 			terrainVertices.Add(FVector(xCoord, yCoord, SimplexNoise::sNoise(xCoord * terrainNoiseScale, yCoord * terrainNoiseScale) * terrainHeight));
@@ -58,10 +55,7 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 				terrainTriangles.Add(point3);
 				terrainTriangles.Add(point4);
 				terrainTriangles.Add(point2);
-				
-
 			}
-
 		}
 	}
 
@@ -70,8 +64,19 @@ void UDynamicTerrainComponent::InitializeTerrainArray()
 
 }
 
+void UDynamicTerrainComponent::InitializeNormals()
+{
+	for (int32 i = 0; i < terrainVertices.Num(); i++)
+	{
+		terrainNormals.Add(GetNormalFromIndex(i));
+	}
+
+	Super::CreateMeshSection(0, terrainVertices, terrainTriangles, terrainNormals, terrainUV0, terrainVertexColors, terrainTangents, true);
+	UE_LOG(LogTemp, Log, TEXT("NORMAL CALCULATION COMPLETE"));
+}
 
 
+//Used to apply an explosive modification to the terrain
 void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, float intensity)
 {
 	int32 xIndex = FMath::RoundHalfFromZero((location[0] / terrainWidth) * terrainResolution);
@@ -100,15 +105,16 @@ void UDynamicTerrainComponent::ModifyTerrain(FVector location, float radius, flo
 }
 
 
-// Gets a square of points around the hit location based on the radius. These will be the only points we modify
+// Gets a square of points around the hit location based on the radius, to avoid editing complete arrays of data
 TArray<int32> UDynamicTerrainComponent::GetIndicesInRadius(int32 xIndex,int32 yIndex, int32 radius)
 {
 	TArray<int32> indicesInRadius;
-	int32 xIndexAdjusted = FMath::Clamp(xIndex - radius, 0, terrainResolution);
-	int32 yIndexAdjusted = FMath::Clamp(yIndex - radius, 0, terrainResolution);
+	int32 xIndexAdjusted = xIndex - radius;
+	int32 yIndexAdjusted = yIndex - radius;
 
 	int32 outX;
 	int32 outY;
+
 
 	for (int i = 0; i <= radius*2; i++)
 	{
@@ -117,14 +123,71 @@ TArray<int32> UDynamicTerrainComponent::GetIndicesInRadius(int32 xIndex,int32 yI
 			outX = xIndexAdjusted + i;
 			outY = yIndexAdjusted + j;
 
-			indicesInRadius.Add(GetIndexFromXY(FVector2D(outX, outY)));
-
-
+			//Test to check index is not out of bounds
+			if (outX >= 0 && outY >= 0 && outX < terrainResolution && outY < terrainResolution)
+			{
+				indicesInRadius.Add(GetIndexFromXY(FVector2D(outX, outY)));
+			}
 		}
 	}
 
 	return indicesInRadius;
 }
+
+//Calculates vertex normal for any given index in the array
+FVector UDynamicTerrainComponent::GetNormalFromIndex(int32 index)
+{
+	FVector2D xyIndex = GetXYfromIndex(index);
+	FVector horizontal;
+	FVector vertical;
+
+	//If the point is not on an edge
+	if (xyIndex.X > 0 && xyIndex.Y > 0 && xyIndex.X < terrainResolution-1 && xyIndex.Y < terrainResolution-1)
+	{
+		FVector horizontal = terrainVertices[index-1] - terrainVertices[index+1];
+
+		FVector vertical = terrainVertices[index + terrainResolution] - terrainVertices[index - terrainResolution];
+
+		
+	}
+	else
+	{
+		return FVector(0, 0, 1);
+
+		//If the point is either on the leftmost or rightmost edge
+		if (xyIndex.X == terrainResolution-1)
+		{
+			FVector horizontal = FVector(0, terrainVertices[index].Z - terrainVertices[index - 1].Z, 1);
+		}
+		else if(xyIndex.X == 0)
+		{
+			FVector horizontal = FVector(0, terrainVertices[index + 1].Z - terrainVertices[index].Z, 1);
+		}
+		
+		//If the point is either on the top or bottom edge
+		if (xyIndex.Y == terrainResolution-1)
+		{
+			FVector vertical = FVector(0, terrainVertices[index].Z - terrainVertices[index - terrainResolution].Z, 1);
+		}
+		else
+		{
+			FVector vertical = FVector(0, terrainVertices[index+1].Z - terrainVertices[index].Z, 1);
+		}
+	}
+
+	FVector normal = FVector(vertical.Y*horizontal.Z - vertical.Z - horizontal.Y, vertical.Z*horizontal.X - vertical.X*horizontal.Z, vertical.X*horizontal.Y - vertical.Y - horizontal.X).GetSafeNormal();
+	if (index % 1000 == 0)
+	{
+		UE_LOG(LogTemp, Log, TEXT("NORMAL CALCULATION--- current normal is: %f, %f, %f"), normal.X, normal.Y, normal.Z);
+		UE_LOG(LogTemp, Log, TEXT("NORMAL CALCULATION--- current horizontal: %f, %f, %f"), horizontal.X, horizontal.Y, horizontal.Z);
+		UE_LOG(LogTemp, Log, TEXT("NORMAL CALCULATION--- current vertical: %f, %f, %f"), vertical.X, vertical.Y, vertical.Z);
+	}
+	
+	return normal;
+	//return FVector(0,0,1);
+}
+
+//Different helper functions for navigating terrain arrays
 
 float UDynamicTerrainComponent::GetDistanceToIndex(int32 center, int32 index)
 {
@@ -133,7 +196,7 @@ float UDynamicTerrainComponent::GetDistanceToIndex(int32 center, int32 index)
 
 FVector2D UDynamicTerrainComponent::GetXYfromIndex(int32 index)
 {
-	return FVector2D(FMath::Fmod(index,terrainResolution), int32(index / terrainResolution ));
+	return FVector2D(FMath::Fmod(index, terrainResolution), int32(index / terrainResolution));
 }
 
 int32 UDynamicTerrainComponent::GetIndexFromXY(FVector2D xyIndex)

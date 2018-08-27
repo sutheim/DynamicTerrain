@@ -23,6 +23,9 @@ public:
 		void InitializeTerrainArray();
 
 	UFUNCTION(BlueprintCallable)
+		void InitializeNormals();
+
+	UFUNCTION(BlueprintCallable)
 		void ModifyTerrain(FVector location, float radius, float intensity);
 
 	UPROPERTY(EditAnywhere)
@@ -53,4 +56,6 @@ private:
 	FVector2D GetXYfromIndex(int32 index);
 
 	int32 GetIndexFromXY(FVector2D xyIndex);
+
+	FVector GetNormalFromIndex(int32 index);
 };
