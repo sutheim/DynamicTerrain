@@ -1,3 +1,3 @@
 # DynamicTerrain
 
-Developed with Unreal Engine 4
+A not particularly good test checking out options for dynamic terrain in UE4
